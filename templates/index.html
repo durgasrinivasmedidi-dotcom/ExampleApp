@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Todo App</h1>
+            <p class="subtitle">Manage your tasks efficiently</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <span class="stat-value">{{ total_count }}</span>
+                <span class="stat-label">Total Tasks</span>
+            </div>
+            <div class="stat-card completed">
+                <span class="stat-value">{{ completed_count }}</span>
+                <span class="stat-label">Completed</span>
+            </div>
+        </div>
+
+        <div class="actions">
+            <a href="{{ url_for('add_todo') }}" class="btn btn-primary">+ Add New Todo</a>
+        </div>
+
+        {% if todos %}
+            <div class="todos-list">
+                {% for todo in todos %}
+                    <div class="todo-item {% if todo.completed %}completed{% endif %}" data-todo-id="{{ todo.id }}">
+                        <div class="todo-content">
+                            <input type="checkbox" class="todo-checkbox" 
+                                   {% if todo.completed %}checked{% endif %}
+                                   onchange="toggleTodo({{ todo.id }}, this)">
+                            <div class="todo-text">
+                                <h3 class="todo-title">{{ todo.title }}</h3>
+                                {% if todo.description %}
+                                    <p class="todo-description">{{ todo.description }}</p>
+                                {% endif %}
+                                <div class="todo-meta">
+                                    {% if todo.due_date %}
+                                        <span class="due-date">📅 {{ todo.due_date.strftime('%Y-%m-%d') }}</span>
+                                    {% endif %}
+                                    <span class="created-date">📌 {{ todo.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="todo-actions">
+                            <a href="{{ url_for('edit_todo', todo_id=todo.id) }}" class="btn btn-small btn-edit">Edit</a>
+                            <form action="{{ url_for('delete_todo', todo_id=todo.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-small btn-delete" onclick="return confirm('Are you sure?')">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>No todos yet! 🎉 Create one to get started.</p>
+                <a href="{{ url_for('add_todo') }}" class="btn btn-primary">Create Your First Todo</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleTodo(todoId, checkbox) {
+            fetch(`/toggle/${todoId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const todoItem = document.querySelector(`[data-todo-id="${todoId}"]`);
+                    if (data.completed) {
+                        todoItem.classList.add('completed');
+                    } else {
+                        todoItem.classList.remove('completed');
+                    }
+                } else {
+                    alert('Error updating todo');
+                    checkbox.checked = !checkbox.checked;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating todo');
+                checkbox.checked = !checkbox.checked;
+            });
+        }
+    </script>
+</body>
+</html>
