@@ -2,6 +2,8 @@
 
 A simple, elegant todo application built with Flask and SQLAlchemy. Features a modern UI with full CRUD operations for managing tasks.
 
+app
+
 ## Features
 
 - ✅ **Create** - Add new todos with title, description, and due date
